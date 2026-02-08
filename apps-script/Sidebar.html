@@ -1,167 +1,149 @@
+<!DOCTYPE html>
 <html>
-<head>
-<base target="_top">
-<style>
-body {
-font-family: Arial, sans-serif;
-margin: 12px;
-padding: 0;
-font-size: 14px;
-}
-h2 {
-margin-top: 0;
-font-size: 18px;
-}
-.container {
-display: flex;
-flex-direction: column;
-height: calc(100vh - 24px);
-}
-.settings {
-margin-bottom: 12px;
-}
-select, button {
-padding: 6px 10px;
-margin: 4px 0;
-font-size: 14px;
-}
-#contextWarning {
-color: #c5221f;
-font-size: 12px;
-margin: 4px 0;
-display: none;
-}
-#chatContainer {
-flex: 1;
-overflow-y: auto;
-border: 1px solid #ddd;
-padding: 10px;
-margin-bottom: 10px;
-background: #f9f9f9;
-border-radius: 4px;
-}
-.message {
-margin: 8px 0;
-padding: 8px 12px;
-border-radius: 6px;
-max-width: 92%;
-}
-.user {
-background: #e8f0fe;
-align-self: flex-end;
-margin-left: auto;
-}
-.assistant {
-background: #ffffff;
-border: 1px solid #e0e0e0;
-}
-#inputArea {
-display: flex;
-flex-direction: column;
-}
-#messageInput {
-resize: vertical;
-min-height: 60px;
-padding: 8px;
-font-size: 14px;
-margin-bottom: 8px;
-}
-#controls {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-}
-#charCount {
-font-size: 12px;
-color: #555;
-margin-top: 4px;
-}
-.action-btn {
-padding: 6px 12px;
-font-size: 13px;
-cursor: pointer;
-}
-#loading {
-display: none;
-color: #1a73e8;
-font-style: italic;
-margin: 8px 0;
-}
-.error {
-color: #c5221f;
-padding: 8px;
-background: #fcecec;
-border-radius: 4px;
-margin: 8px 0;
-}
-</style>
-</head>
-<body>
-<div class="container">
-<h2>ChatGPT Sidebar</h2>
-      
-        Modus:
+  <head>
+    <base target="_top">
+    <meta charset="utf-8" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 12px;
+        font-size: 14px;
+      }
 
-        <select id="modeSelect">
-          <option value="Allgemein">Allgemein</option>
-          <option value="Schriftsatz">Schriftsatz (DE, juristisch)</option>
-          <option value="Überarbeiten">Überarbeiten (klar/knapp)</option>
-        </select>
+      h2 {
+        margin-top: 0;
+        font-size: 18px;
+      }
 
+      label {
+        font-weight: bold;
+      }
 
+      select, textarea, button {
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 6px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        padding: 6px;
+      }
 
-Kontext:
+      textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
 
-<select id="contextSelect" onchange="updateContextWarning()">
-          <option value="Nur Chat">Nur Chat</option>
-          <option value="Mit Markierung">Mit Markierung</option>
-          <option value="Mit ganzem Dokument">Mit ganzem Dokument</option>
-        
-        Achtung: Das gesamte Dokument wird an ChatGPT gesendet!
-      
-      
-      
-        <textarea id="messageInput" placeholder="Ihre Nachricht an ChatGPT..."></textarea>
-        
-          <button onclick="sendMessage()">Senden</button>
-          <button class="action-btn" onclick="applyAction(&#x27;insert&#x27;)">An Cursor einfügen</button>
-          <button class="action-btn" onclick="applyAction(&#x27;replace&#x27;)">Markierung ersetzen</button>
-        
-        
-        Verarbeite...
-        
-      
-    
+      #chatContainer {
+        border: 1px solid #ddd;
+        background: #f9f9f9;
+        padding: 8px;
+        margin-bottom: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .message {
+        margin-bottom: 8px;
+        padding: 6px;
+        border-radius: 4px;
+      }
+
+      .user {
+        background: #e8f0fe;
+      }
+
+      .assistant {
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+      }
+
+      #contextWarning {
+        color: #c5221f;
+        font-size: 12px;
+        display: none;
+        margin-bottom: 8px;
+      }
+
+      #loading {
+        font-style: italic;
+        color: #1a73e8;
+        display: none;
+        margin-bottom: 8px;
+      }
+
+      .error {
+        color: #c5221f;
+        background: #fcecec;
+        padding: 6px;
+        border-radius: 4px;
+        display: none;
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>ChatGPT Sidebar</h2>
+
+    <label for="modeSelect">Modus</label>
+    <select id="modeSelect">
+      <option value="Allgemein">Allgemein</option>
+      <option value="Schriftsatz">Schriftsatz (DE, juristisch)</option>
+      <option value="Überarbeiten">Überarbeiten (klar/knapp)</option>
+    </select>
+
+    <label for="contextSelect">Kontext</label>
+    <select id="contextSelect" onchange="updateContextWarning()">
+      <option value="Nur Chat">Nur Chat</option>
+      <option value="Mit Markierung">Mit Markierung</option>
+      <option value="Mit ganzem Dokument">Mit ganzem Dokument</option>
+    </select>
+
+    <div id="contextWarning">
+      Achtung: Das gesamte Dokument wird an ChatGPT gesendet!
+    </div>
+
+    <div id="chatContainer"></div>
+
+    <label for="messageInput">Nachricht</label>
+    <textarea id="messageInput" placeholder="Ihre Nachricht an ChatGPT..."></textarea>
+
+    <button onclick="sendMessage()">Senden</button>
+
+    <button onclick="applyAction('insert')">An Cursor einfügen</button>
+    <button onclick="applyAction('replace')">Markierung ersetzen</button>
+
+    <div id="loading">Verarbeite…</div>
+    <div id="error" class="error"></div>
+
     <script>
       let currentResponse = '';
-      let lastCharCount = 0;
-      let lastTruncated = false;
 
       function updateContextWarning() {
         const ctx = document.getElementById('contextSelect').value;
-        document.getElementById('contextWarning').style.display = 
-          (ctx === 'Mit ganzem Dokument') ? 'block' : 'none';
+        document.getElementById('contextWarning').style.display =
+          ctx === 'Mit ganzem Dokument' ? 'block' : 'none';
       }
 
-      function addMessage(role, content) {
+      function addMessage(role, text) {
         const container = document.getElementById('chatContainer');
-        const msg = document.createElement('div');
-        msg.className = `message ${role}`;
-        msg.textContent = content;
-        container.appendChild(msg);
+        const div = document.createElement('div');
+        div.className = 'message ' + role;
+        div.textContent = text;
+        container.appendChild(div);
         container.scrollTop = container.scrollHeight;
       }
 
-      function showError(message) {
-        const errDiv = document.getElementById('error');
-        errDiv.textContent = message;
-        errDiv.style.display = 'block';
+      function showError(msg) {
+        const el = document.getElementById('error');
+        el.textContent = msg;
+        el.style.display = 'block';
       }
 
       function clearError() {
-        const errDiv = document.getElementById('error');
-        errDiv.textContent = '';
-        errDiv.style.display = 'none';
+        const el = document.getElementById('error');
+        el.textContent = '';
+        el.style.display = 'none';
       }
 
       function sendMessage() {
@@ -176,7 +158,6 @@ Kontext:
         const contextMode = document.getElementById('contextSelect').value;
 
         document.getElementById('loading').style.display = 'block';
-        document.getElementById('charCount').textContent = 'Wird berechnet...';
         clearError();
 
         google.script.run
@@ -192,57 +173,34 @@ Kontext:
       function onSuccess(result) {
         document.getElementById('loading').style.display = 'none';
 
-        if (result.success) {
-          currentResponse = result.answer;
-          addMessage('assistant', result.answer);
-
-          lastCharCount = result.charCount;
-          lastTruncated = result.truncated;
-
-          let info = `Gesendete Zeichen: ${lastCharCount}`;
-          if (lastTruncated) {
-            info += ' (Kontext wurde gekürzt)';
-          }
-          document.getElementById('charCount').textContent = info;
-        } else {
-          showError(result.error || 'Unbekannter Fehler');
+        if (!result.success) {
+          showError(result.error);
+          return;
         }
+
+        currentResponse = result.answer;
+        addMessage('assistant', result.answer);
       }
 
-      function onFailure(error) {
+      function onFailure(err) {
         document.getElementById('loading').style.display = 'none';
-        showError(error.message || 'Verbindungsfehler');
+        showError(err.message || 'Fehler');
       }
 
       function applyAction(type) {
         if (!currentResponse) {
-          showError('Keine Antwort zum Einfügen vorhanden.');
+          showError('Keine Antwort vorhanden.');
           return;
         }
 
-        let serverFunction;
-        if (type === 'insert') {
-          serverFunction = 'insertAtCursor';
-        } else if (type === 'replace') {
-          serverFunction = 'replaceSelection';
-        } else {
-          return;
-        }
-
-        if (type === 'replace') {
-          const selection = true; // dummy – Prüfung erfolgt serverseitig
-        }
+        const fn = type === 'insert' ? 'insertAtCursor' : 'replaceSelection';
 
         google.script.run
-          .withSuccessHandler(() => {
-            alert('Änderung erfolgreich angewendet.');
-          })
-          .withFailureHandler((err) => {
-            showError(err.message || 'Fehler beim Anwenden der Änderung');
-          })
-          [serverFunction](currentResponse);
+          .withFailureHandler(err => showError(err.message))
+          [fn](currentResponse);
       }
 
-      // Initialisierung
       updateContextWarning();
     </script>
+  </body>
+</html>
